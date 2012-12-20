@@ -11,16 +11,24 @@ std::string nodeName = "pthead";
 */
 int main(int argc, char **argv)
 {
+  sensor_msgs::JointState msg;
+
 	ros::init(argc, argv, nodeName);
 	ros::NodeHandle n;
 
 	ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("/joint_states", 10);
 	ros::Rate loop_rate(10);
 
-	std::string js_names[]	= {"head_pan_joint", "head_tilt_joint"};
-	double 	js_pos[]	= {0, 0};
-	double 	js_vel[]	= {0, 0};
-	double 	js_effort[]	= {0, 0};
+  msg.name.resize(2);
+  msg.name[0] = "head_pan_joint";
+  msg.name[1] = "head_tilt_joint";
+	
+	msg.position.resize(2);
+  msg.position[0] = 0.0;
+  msg.position[1] = 0.0;
+  
+  msg.velocity.resize(2);
+  msg.effort.resize(2);
 
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	
@@ -45,7 +53,7 @@ int main(int argc, char **argv)
 	// Prepare synchronization mode request
 	ptp->startSynchronization();
 	// Send it to motor controllers
-	// ptp->nextStep();
+	ptp->nextStep();
 	
 	printf("Pan-tilt speed control: [A] x- [D] x+ [S] y- [W] y+ [space] stop\n\n");
 	printf("Quit: [Q]\n\n");
@@ -92,17 +100,12 @@ int main(int argc, char **argv)
 		ptp->nextStep();
 		// Process received data
 		ptp->getMotorPosition(rx, ry);
-		printf("px: %6d, py: %6d, syn: %d\n", (int)rx, (int)ry, ptp->isSynchronized());
-		
-		js_pos[0] = rx;
-		js_pos[1] = ry;
+		//printf("px: %6d, py: %6d, syn: %d\n", (int)rx, (int)ry, ptp->isSynchronized());
 		
 		// Building message
-		sensor_msgs::JointState msg;
-		msg.name = std::vector<std::string>(js_names, js_names+2);
-		msg.position = std::vector<double>(js_pos, js_pos+2);
-		msg.velocity = std::vector<double>(js_vel, js_vel+2);
-		msg.effort = std::vector<double>(js_effort, js_effort+2);
+		msg.header.stamp = ros::Time::now();
+    msg.position[0] = ( (rx - 1707.0) / 2000.0) / 46.0 * 2.0 * M_PI;
+    msg.position[1] = ( (ry + 3139.0) / 2000.0) / 50.0 * 2.0 * M_PI;
 		js_pub.publish(msg);
 
 		ros::spinOnce();
