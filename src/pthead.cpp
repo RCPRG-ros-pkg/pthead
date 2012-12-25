@@ -99,13 +99,13 @@ int main(int argc, char **argv)
 		// Read - write hardware
 		ptp->nextStep();
 		// Process received data
-		ptp->getMotorPosition(rx, ry);
+		ptp->getJointPosition(rx, ry);
 		//printf("px: %6d, py: %6d, syn: %d\n", (int)rx, (int)ry, ptp->isSynchronized());
 		
 		// Building message
 		msg.header.stamp = ros::Time::now();
-    msg.position[0] = ( (rx - 1707.0) / 2000.0) / 46.0 * 2.0 * M_PI;
-    msg.position[1] = ( (ry + 3139.0) / 2000.0) / 50.0 * 2.0 * M_PI;
+	    msg.position[0] = rx;
+	    msg.position[1] = ry;
 		js_pub.publish(msg);
 
 		ros::spinOnce();
