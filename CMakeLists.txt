@@ -22,12 +22,16 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
-rosbuild_add_library(${PROJECT_NAME}	src/ptproxy/PTProxy.cpp
-										src/ptproxy/nfv2_config.c
-										src/ptproxy/serialcomm/serialcomm.cpp
-										src/ptproxy/nf/nfv2.c)
+rosbuild_add_library(PTProxy	src/ptproxy/PTProxy.cpp
+								src/ptproxy/nfv2_config.c
+								src/ptproxy/serialcomm/serialcomm.cpp
+								src/ptproxy/nf/nfv2.c)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(pthead src/pthead.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+target_link_libraries(pthead PTProxy)
+rosbuild_add_executable(keybctrl src/keyboard_ctrl.cpp)
+#rosbuild_add_executable(old src/old.cpp)
+#target_link_libraries(old PTProxy)
+
