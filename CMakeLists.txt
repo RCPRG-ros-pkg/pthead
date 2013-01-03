@@ -32,6 +32,14 @@ rosbuild_add_library(PTProxy	src/ptproxy/PTProxy.cpp
 rosbuild_add_executable(pthead src/pthead.cpp)
 target_link_libraries(pthead PTProxy)
 rosbuild_add_executable(keybctrl src/keyboard_ctrl.cpp)
-#rosbuild_add_executable(old src/old.cpp)
-#target_link_libraries(old PTProxy)
+
+# ###################################################
+# Tracker using PS Move
+# ###################################################
+include(FindPkgConfig)
+pkg_search_module(PSMOVEAPI psmoveapi)
+find_package(OpenCV)
+include_directories(${PSMOVEAPI_INCLUDE_DIRS})
+rosbuild_add_executable(tracker src/tracker.cpp)
+target_link_libraries(tracker ${PSMOVEAPI_LIBRARIES} ${OpenCV_LIBS})
 

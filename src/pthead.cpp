@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber twist_sub = n.subscribe("head_vel", 1, &twistCallback);
 	ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("/joint_states", 10);
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(100);
 
 	msg.name.resize(2);
 	msg.name[0] = "head_pan_joint";
