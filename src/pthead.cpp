@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle n;
 
 	ros::Subscriber twist_sub = n.subscribe("head_vel", 1, &twistCallback);
-	ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("/joint_states", 10);
+	ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("head_jstates", 10);
 	ros::Rate loop_rate(100);
 
 	msg.name.resize(2);
