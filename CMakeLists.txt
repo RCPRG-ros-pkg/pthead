@@ -31,6 +31,7 @@ rosbuild_add_library(PTProxy	src/ptproxy/PTProxy.cpp
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(pthead src/pthead.cpp)
 rosbuild_add_executable(iptsc src/iptsc.cpp)
+rosbuild_add_executable(servo src/servo.cpp)
 target_link_libraries(pthead PTProxy)
 rosbuild_add_executable(keybctrl src/keyboard_ctrl.cpp)
 

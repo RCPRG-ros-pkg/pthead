@@ -1,0 +1,9 @@
+<launch>
+	<node name="v_effector"		pkg="pthead" type="pthead"/>
+	<node name="control_subs"	pkg="pthead" type="servo"/>
+	<node name="v_rec_calc"		pkg="pthead" type="iptsc" >
+		<remap from="image_position" to="ball_position"/>
+		<remap from="spherical_position" to="pos_error"/>
+	</node>
+	<node name="v_receptor"		pkg="pthead" type="tracker"/>
+</launch>
