@@ -77,7 +77,7 @@ float inrange(float v, float mn, float mx) {
 */
 int main(int argc, char **argv)
 {
-	geometry_msgs::Twist	msgTwist;
+	geometry_msgs::PointStamped msgPoint;
 	sensor_msgs::Joy		msgJoy;
 	msgJoy.axes.resize(20);
 	msgJoy.buttons.resize(17);
@@ -191,28 +191,32 @@ int main(int argc, char **argv)
         psmove_tracker_update(tracker, NULL);
         frame = psmove_tracker_get_frame(tracker);
 
-		float limit = 70;
+		msgPoint.header.stamp = ros::Time::now();
+
+		//float limit = 70;
         float x, y, r;
         psmove_tracker_get_position(tracker, controllers[0], &x, &y, &r);
-        float xx = 0.05*(x-320);
-        float yy = 0.05*(y-240);
-        xx *= fabs(xx);
-        yy *= fabs(yy);
+        //float xx = 0.05*(x-320);
+        //float yy = 0.05*(y-240);
+        //xx *= fabs(xx);
+        //yy *= fabs(yy);
 
-        xx = inrange(xx, -limit, limit);
-        yy = inrange(yy, -limit, limit);
+        //xx = inrange(xx, -limit, limit);
+        //yy = inrange(yy, -limit, limit);
         
         //printf("x %5f y %5f\n", xx, yy);
 		
 		// Building message
-		msgTwist.angular.z = (trackerPaused?0.0:xx);
-		msgTwist.angular.y = (trackerPaused?0.0:yy);
+		//msgTwist.angular.z = (trackerPaused?0.0:xx);
+		//msgTwist.angular.y = (trackerPaused?0.0:yy);
+        msgPoint.point.x = x;
+        msgPoint.point.y = y;
 		
 		if(pthSynchronize) {
 			pthSynchronize = false;
 		}
 		else {
-			twist_pub.publish(msgTwist);
+			ballpos_pub.publish(msgPoint);
 		}
 
 		ros::spinOnce();
