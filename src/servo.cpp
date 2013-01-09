@@ -15,16 +15,15 @@
 
 #include "psdefs.h"
 
-#define COEFF_P			250.0
-#define ANGLE_INSENS	0.05
-#define INCREM_LIMIT	80.0
+#define COEFF_P				0.14
+#define ANGLE_INSENS		0.1
+#define ANG_INCREM_LIMIT	100
 
 std::string nodeName = "ptservo";
 
 FILE * logfile;
 
 bool trackerPaused	= false;
-bool trackerLog	= false;
 //bool pthSynchronize	= false;
 
 ros::Subscriber pos_sub;
@@ -69,18 +68,6 @@ void joyCallback(const sensor_msgs::Joy& msg) {
 			ROS_INFO("PSMove Tracker PAUSED");
 		}
 	}
-
-	if(msg.buttons[PS3_BUTTON_ACTION_SQUARE] == 1
-			&& prevmsg.buttons[PS3_BUTTON_ACTION_SQUARE] == 0){
-		if(trackerLog) {
-			trackerLog = false;
-			ROS_INFO("Logging OFF");
-		}
-		else {
-			trackerLog = true;
-			ROS_INFO("Logging ON");
-		}
-	}
 	
 	prevmsg = msg;
 }
@@ -99,16 +86,13 @@ void posCallback(const geometry_msgs::PointStamped& msg) {
 	yy = insensitive(yy, ANGLE_INSENS);
 	xx *= COEFF_P;
 	yy *= COEFF_P;
-	xx = inrange(xx, -INCREM_LIMIT, INCREM_LIMIT);
-	yy = inrange(yy, -INCREM_LIMIT, INCREM_LIMIT);
+	xx = inrange(xx, -ANG_INCREM_LIMIT, ANG_INCREM_LIMIT);
+	yy = inrange(yy, -ANG_INCREM_LIMIT, ANG_INCREM_LIMIT);
 	
 	geometry_msgs::Twist	msgTwist;
 	msgTwist.angular.z = xx;
 	msgTwist.angular.y = yy;
 	twist_pub.publish(msgTwist);
-	
-	//if(trackerLog)
-	//    fprintf (logfile, "rotx %5f, roty %5f \n", msg.point.x, msg.point.y);
 }
 
 /**
@@ -130,8 +114,6 @@ int main(int argc, char **argv)
 	joints_sub = n.subscribe("head_jstates", 1, &jstatesCallback);
 	joy_sub = n.subscribe("psmove_out", 1, &joyCallback);
 	twist_pub = n.advertise<geometry_msgs::Twist>("head_vel", 10);
-	
-	//logfile = fopen ("pstrackerlog.txt","a");
 
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	

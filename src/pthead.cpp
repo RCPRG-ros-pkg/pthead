@@ -5,9 +5,16 @@
 #include <stdio.h>
 #include <cstring>
 
+#include "sensor_msgs/Joy.h"
+#include "psdefs.h"
+
+#define MOVE_TO_CENTER_SPEED	0.10 //[rad/s]
+
 std::string nodeName = "pthead";
 PTProxy *ptp;
 float dx = 0, dy = 0, rx, ry;
+
+ros::Subscriber joy_sub;
 
 /**
 * 
@@ -15,7 +22,21 @@ float dx = 0, dy = 0, rx, ry;
 void twistCallback(const geometry_msgs::TwistConstPtr& msg) {
 	dx = msg->angular.z;
 	dy = msg->angular.y;
-	ptp->setMotorSpeed(dx, dy);
+	ptp->setJointSpeed(dx, dy);
+}
+
+/**
+* 
+*/
+void joyCallback(const sensor_msgs::Joy& msg) {
+	static sensor_msgs::Joy prevmsg;
+
+	if(msg.buttons[PS3_BUTTON_ACTION_CROSS] == 1
+			&& prevmsg.buttons[PS3_BUTTON_ACTION_CROSS] == 0){
+		ptp->setJointPositionWithSpeed(0, 0, MOVE_TO_CENTER_SPEED, MOVE_TO_CENTER_SPEED);	
+	}
+	
+	prevmsg = msg;
 }
 
 /**
@@ -30,6 +51,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber twist_sub = n.subscribe("head_vel", 1, &twistCallback);
 	ros::Publisher js_pub = n.advertise<sensor_msgs::JointState>("head_jstates", 10);
+	joy_sub = n.subscribe("psmove_out", 1, &joyCallback);
 	ros::Rate loop_rate(100);
 
 	msg.name.resize(2);
