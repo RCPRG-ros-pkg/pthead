@@ -3,7 +3,7 @@
 #include <cstring>
 #include "sensor_msgs/Joy.h"
 #include "sensor_msgs/JointState.h"
-#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/PointStamped.h"
 
 #include <time.h>
@@ -15,9 +15,9 @@
 
 #include "psdefs.h"
 
-#define COEFF_P				0.14
-#define ANGLE_INSENS		0.1
-#define ANG_INCREM_LIMIT	100
+#define COEFF_P				14.0
+#define ANGLE_INSENS		0.1		// [rad]
+#define ANG_INCREM_LIMIT	5.0		// [rad/s]
 
 std::string nodeName = "ptservo";
 
@@ -61,9 +61,10 @@ void joyCallback(const sensor_msgs::Joy& msg) {
 		else {
 			
 			trackerPaused = true;
-			geometry_msgs::Twist	msgTwist;
-			msgTwist.angular.z = 0;
-			msgTwist.angular.y = 0;
+			geometry_msgs::TwistStamped	msgTwist;
+			msgTwist.header.stamp = ros::Time::now();
+			msgTwist.twist.angular.z = 0;
+			msgTwist.twist.angular.y = 0;
 			twist_pub.publish(msgTwist);
 			ROS_INFO("PSMove Tracker PAUSED");
 		}
@@ -89,9 +90,10 @@ void posCallback(const geometry_msgs::PointStamped& msg) {
 	xx = inrange(xx, -ANG_INCREM_LIMIT, ANG_INCREM_LIMIT);
 	yy = inrange(yy, -ANG_INCREM_LIMIT, ANG_INCREM_LIMIT);
 	
-	geometry_msgs::Twist	msgTwist;
-	msgTwist.angular.z = xx;
-	msgTwist.angular.y = yy;
+	geometry_msgs::TwistStamped	msgTwist;
+	msgTwist.header.stamp = ros::Time::now();
+	msgTwist.twist.angular.z = xx;
+	msgTwist.twist.angular.y = yy;
 	twist_pub.publish(msgTwist);
 }
 
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
 	pos_sub = n.subscribe("pos_error", 1, &posCallback);
 	joints_sub = n.subscribe("head_jstates", 1, &jstatesCallback);
 	joy_sub = n.subscribe("psmove_out", 1, &joyCallback);
-	twist_pub = n.advertise<geometry_msgs::Twist>("head_vel", 10);
+	twist_pub = n.advertise<geometry_msgs::TwistStamped>("head_vel", 10);
 
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	

@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
-#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include "ptproxy/PTProxy.h"
 #include <stdio.h>
 #include <cstring>
@@ -8,7 +8,7 @@
 #include "sensor_msgs/Joy.h"
 #include "psdefs.h"
 
-#define MOVE_TO_CENTER_SPEED	0.10 //[rad/s]
+#define MOVE_TO_CENTER_SPEED	1.0 //[rad/s]
 
 std::string nodeName = "pthead";
 PTProxy *ptp;
@@ -19,9 +19,9 @@ ros::Subscriber joy_sub;
 /**
 * 
 */
-void twistCallback(const geometry_msgs::TwistConstPtr& msg) {
-	dx = msg->angular.z;
-	dy = msg->angular.y;
+void twistCallback(const geometry_msgs::TwistStamped& msg) {
+	dx = msg.twist.angular.z;
+	dy = msg.twist.angular.y;
 	ptp->setJointSpeed(dx, dy);
 }
 
@@ -68,24 +68,35 @@ int main(int argc, char **argv)
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	
 	ptp = new PTProxy("/dev/ttyACM0");
-	// Prepare synchronization mode request
-	ptp->startSynchronization();
-	// Send it to motor controllers
-	ptp->nextStep();
 	
-	bool quit = false;
+	int spinCnt = 1;
 	while (ros::ok())
 	{
 		// Read - write hardware
 		ptp->nextStep();
-		// Process received data
-		ptp->getJointPosition(rx, ry);
 		
-		// Building message
-		msg.header.stamp = ros::Time::now();
-	    msg.position[0] = rx;
-	    msg.position[1] = ry;
-		js_pub.publish(msg);
+		if(spinCnt < 3) {
+			// Do nothing, only request motor drivers' status
+			spinCnt ++;
+		}
+		else if(spinCnt == 3) {
+			if(ptp->isSynchronized() == 0)
+			// If head is not synchronized, prepare synchronization request
+			ptp->startSynchronization();
+			spinCnt ++;
+		}
+		else {
+			// If head is synchronized
+			if(ptp->isSynchronized()){
+				// Process received data
+				ptp->getJointPosition(rx, ry);
+				// Building message
+				msg.header.stamp = ros::Time::now();
+				msg.position[0] = rx;
+				msg.position[1] = ry;
+				js_pub.publish(msg);
+			}
+		}
 
 		ros::spinOnce();
 
