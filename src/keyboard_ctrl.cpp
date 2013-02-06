@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <cstring>
 #include <termios.h>
-#include "geometry_msgs/Twist.h"
-#include "sensor_msgs/JointState.h"
+#include "geometry_msgs/TwistStamped.h"
+
+#define VSTEP 0.25 // ang velocity step [rad/s] 
 
 std::string nodeName = "ptkeybctrl";
 
@@ -12,23 +13,13 @@ std::string nodeName = "ptkeybctrl";
 */
 int main(int argc, char **argv)
 {
-	sensor_msgs::JointState	msgJointState;
-	geometry_msgs::Twist	msgTwist;
+	geometry_msgs::TwistStamped	msgTwist;
 
 	ros::init(argc, argv, nodeName);
 	ros::NodeHandle n;
 
-	ros::Publisher js_pub = n.advertise<geometry_msgs::Twist>("/head_vel", 10);
+	ros::Publisher js_pub = n.advertise<geometry_msgs::TwistStamped>("/head_vel", 10);
 	ros::Rate loop_rate(10);
-
-	msgJointState.name.resize(2);
-	msgJointState.name[0] = "head_pan_joint";
-	msgJointState.name[1] = "head_tilt_joint";
-	msgJointState.position.resize(2);
-	msgJointState.position[0] = 0.0;
-	msgJointState.position[1] = 0.0;
-	msgJointState.velocity.resize(2);
-	msgJointState.effort.resize(2);
 
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	
@@ -60,19 +51,19 @@ int main(int argc, char **argv)
 			switch(inp){
 				case 'a':
 				case 'A':
-					dx -= 1;
+					dx += VSTEP;
 					break;
 				case 'd':
 				case 'D':
-					dx += 1;
+					dx -= VSTEP;
 					break;
 				case 's':
 				case 'S':
-					dy -= 1;
+					dy += VSTEP;
 					break;
 				case 'w':
 				case 'W':
-					dy += 1;
+					dy -= VSTEP;
 					break;
 				case ' ':
 					dx = 0;
@@ -88,8 +79,9 @@ int main(int argc, char **argv)
 		}
 		
 		// Building message
-		msgTwist.angular.z = dx;
-		msgTwist.angular.y = dy;
+		msgTwist.twist.angular.z = dx;
+		msgTwist.twist.angular.y = dy;
+		msgTwist.header.stamp = ros::Time::now();
 		js_pub.publish(msgTwist);
 
 		ros::spinOnce();

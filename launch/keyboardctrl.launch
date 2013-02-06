@@ -1,0 +1,4 @@
+<launch>
+	<node name="v_effector"		pkg="pthead" type="pthead"/>
+	<node name="ctrl_subs"		pkg="pthead" type="keybctrl"/>
+</launch>
