@@ -18,6 +18,7 @@
 #define SPIN_FREQ				100
 
 std::string nodeName = "pthead";
+std::string serialPortName;
 PTProxy *ptp;
 float dx = 0, dy = 0;
 
@@ -75,7 +76,6 @@ bool queryTrajectoryStateService(
 	pr2_controllers_msgs::QueryTrajectoryState::Request &req,
 	pr2_controllers_msgs::QueryTrajectoryState::Response &resp)
 {
-	ROS_WARN("query state call in pthead");
 	// Determines which segment of the trajectory to use
 //	int seg = -1;
 //	while (seg + 1 < (int)traj.size() &&
@@ -109,6 +109,7 @@ int main(int argc, char **argv)
 
 	ros::init(argc, argv, nodeName);
 	ros::NodeHandle n;
+    n.param("serial_port", serialPortName, std::string("/dev/ttyACM0"));
 
 	ros::Subscriber twist_sub = n.subscribe("head_vel", 1, &twistCallback);
 	ros::Subscriber traj_sub = n.subscribe("command", 1, &trajectoryCallback);
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Starting node %s", nodeName.c_str());
 	
-	ptp = new PTProxy("/dev/ttyACM0");
+	ptp = new PTProxy(serialPortName);
 	
 	// Trajectory generation
     vel_profile_.resize(number_of_joints_);
